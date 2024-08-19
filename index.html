@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        /* Made by lollo21 */
+        @font-face {
+            font-family: 'GetaiGrotesk';
+            src: url('https://res.cloudinary.com/dk0f2y0hu/raw/upload/v1697735684/DTGetaiGroteskDisplay-Black_lvaqdy_r0m5v2.ttf') format('truetype');
+        }
+
+        body {
+            font-family: 'GetaiGrotesk', Arial, sans-serif;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #video-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            min-width: 100%;
+            min-height: 100%;
+            z-index: -1;
+        }
+
+        .timer-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            text-align: center;
+            color: white;
+        }
+
+        .timer {
+            font-size: 72px;
+            margin: 20px 0;
+        }
+
+        .start-button,
+        .toggle-background {
+            background-color: #6600FF;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 24px;
+            font-family: 'GetaiGrotesk', Arial, sans-serif;
+            padding: 15px 30px;
+            cursor: pointer;
+        }
+
+        .toggle-background {
+            background-color: #6600FF;
+            color: white;
+            border-radius: 20px;
+            font-size: 18px;
+            padding: 10px 20px;
+            cursor: pointer;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .credit {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-family: 'GetaiGrotesk', Arial, sans-serif;
+            font-size: 16px;
+            color: white;
+        }
+
+        .timer-title {
+            font-size: 48px;
+            font-family: 'GetaiGrotesk', Arial, sans-serif;
+        }
+
+        .random-quote-container {
+            display: none;
+        }
+
+        .quote-desktop {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            max-width: calc(100% - 200px);
+            font-size: 20px;
+            font-family: 'GetaiGrotesk', Arial, sans-serif;
+            color: white;
+            text-align: left;
+            display: none;
+        }
+
+        .random-quote {
+            font-size: 20px;
+            font-family: 'GetaiGrotesk', Arial, sans-serif;
+            color: white;
+            margin-bottom: 10px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .author {
+            font-size: 14px;
+            font-style: italic;
+            font-family: 'GetaiGrotesk', Arial, sans-serif;
+            color: white;
+            margin-left: 0;
+        }
+
+        @media (min-width: 1000px) {
+            .quote-desktop {
+                display: block;
+            }
+
+            .random-quote-container {
+                display: block;
+                position: absolute;
+                top: 20px;
+                left: 20px;
+                max-width: calc(100% - 40px);
+            }
+        }
+
+        @media (max-width: 1000px) {
+            .timer-container {
+                width: 100%;
+                padding: 20px;
+            }
+
+            .timer {
+                font-size: 48px;
+                margin: 10px 0;
+            }
+
+            .start-button {
+                font-size: 18px;
+                padding: 10px 30px;
+            }
+
+            .toggle-background {
+                display: none;
+            }
+
+            .credit {
+                font-size: 14px;
+            }
+
+            .timer-title {
+                font-size: 36px;
+            }
+
+            .random-quote-container {
+                font-size: 16px;
+            }
+        }
+
+        @media (min-width: 1000px) {
+            .toggle-background {
+                top: 10px;
+                right: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <video autoplay muted loop id="video-background">
+        <source src="https://res.cloudinary.com/dk0f2y0hu/video/upload/v1697736849/Animated_Gradient_Background_Loop_-_Live_Wallpaper_-_Mood_Lighting_Relaxing_Background_Videos_Loops_vyfhjf.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <button class="toggle-background" onclick="toggleBackground()">Animated background</button>
+
+    <div class="random-quote-container" id="random-quote-container">
+        <div class="random-quote" id="random-quote"></div>
+        <div class="author" id="quote-author"></div>
+    </div>
+
+    <div class="quote-desktop">
+        <div class="random-quote" id="random-quote"></div>
+        <div class="author" id="quote-author"></div>
+    </div>
+
+    <div class="timer-container">
+        <div class="timer-title">Pomodoro timer</div>
+        <div class="timer">25:00</div>
+        <button class="start-button" onclick="toggleTimer()">Start</button>
+    </div>
+
+    <div class="credit">
+        Made by <a href="https://lollo.framer.website/" target="_blank" style="color: white; text-decoration: none;">lollo21</a>
+    </div>
+
+    <script>
+        let timer;
+        let workDurations = [25 * 60, 5 * 60, 25 * 60, 5 * 60, 25 * 60, 5 * 60, 25 * 60, 10 * 60];
+        let currentIndex = 0;
+        let isPaused = false;
+        let isAltBackground = false;
+
+        const quotes = [
+            { quote: "Never stop learning, because life never stops teaching.", author: "Anonymous" },
+            { quote: "Knowledge is power.", author: "Francis Bacon" },
+            { quote: "Education is the most powerful weapon which you can use to change the world.", author: "Nelson Mandela" },
+            { quote: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+            { quote: "The secret of success is to start.", author: "Mark Twain" },
+            { quote: "No matter how slow your progress, you're still ahead of everyone who isn't trying.", author: "Tony Robbins" },
+            { quote: "Talent is natural, but intelligence is acquired through study.", author: "Albert Einstein" },
+            { quote: "Don't let what you don't know scare you, let it push you to learn more.", author: "Michelle Obama" },
+            { quote: "The most important thing is never to stop questioning.", author: "Albert Einstein" },
+            { quote: "The best way to predict the future is to create it.", author: "Abraham Lincoln" },
+            { quote: "Nothing is impossible to those who have a strong will.", author: "Ludovico Ariosto" },
+            { quote: "Knowledge is the only good that multiplies when shared.", author: "Socrates" },
+            { quote: "Don't study to be someone in life, study to be someone in life.", author: "Anonymous" },
+            { quote: "It's not how many times you fall, but how many times you get up.", author: "Vince Lombardi" },
+            { quote: "If you want to go fast, go alone. If you want to go far, go together.", author: "African Proverb" },
+            { quote: "Success is the sum of small efforts repeated day in and day out.", author: "Robert Collier" },
+            { quote: "There is no elevator to success, you have to take the stairs.", author: "Zig Ziglar" },
+            { quote: "Be the change you want to see in the world.", author: "Mahatma Gandhi" }
+        ];
+
+        function displayRandomQuote() {
+            const randomIndex = Math.floor(Math.random() * quotes.length);
+            document.getElementById('random-quote').textContent = quotes[randomIndex].quote;
+            document.getElementById('quote-author').textContent = quotes[randomIndex].author;
+        }
+
+        displayRandomQuote(); 
+
+        function toggleTimer() {
+            if (!timer) {
+                startTimer();
+                document.querySelector('.start-button').textContent = 'Pause';
+            } else {
+                if (isPaused) {
+                    resumeTimer();
+                    document.querySelector('.start-button').textContent = 'Pause';
+                } else {
+                    pauseTimer();
+                    document.querySelector('.start-button').textContent = 'Start';
+                }
+            }
+        }
+
+        function startTimer() {
+            if (!timer) {
+                timer = setInterval(updateTimer, 1000);
+            }
+        }
+
+        function pauseTimer() {
+            clearInterval(timer);
+            isPaused = true;
+        }
+
+        function resumeTimer() {
+            timer = setInterval(updateTimer, 1000);
+            isPaused = false;
+        }
+
+        function updateTimer() {
+            if (workDurations[currentIndex] > 0) {
+                workDurations[currentIndex]--;
+            } else {
+                if (currentIndex % 2 === 0) {
+                    currentIndex = (currentIndex + 1) % workDurations.length;
+                } else {
+                    currentIndex = (currentIndex + 1) % workDurations.length;
+                }
+            }
+
+            const minutes = Math.floor(workDurations[currentIndex] / 60);
+            const seconds = workDurations[currentIndex] % 60;
+
+            const timerDisplay = document.querySelector('.timer');
+            timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function toggleBackground() {
+            const videoBackground = document.getElementById('video-background');
+            const toggleButton = document.querySelector('.toggle-background');
+
+            if (!isAltBackground) {
+                videoBackground.style.display = 'none';
+                document.body.style.backgroundColor = '#7770ff';
+                toggleButton.textContent = 'Static background';
+            } else {
+                videoBackground.style.display = 'block';
+                document.body.style.backgroundColor = 'transparent';
+                toggleButton.textContent = 'Animated background';
+            }
+            isAltBackground = !isAltBackground;
+        }
+    </script>
+</body>
+
+</html>
